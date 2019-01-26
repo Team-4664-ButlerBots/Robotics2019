@@ -12,5 +12,7 @@ package frc.robot;
  * this file should be well commented and documented for ease of use by non-programmers
  */
 public interface Constants {
-
+    //motor ports 
+    int LSMOTOR = 0;
+    int  RSMOTOR = 1;
 }

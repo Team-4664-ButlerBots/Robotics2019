@@ -7,7 +7,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -18,11 +22,29 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot {
+public class Robot extends TimedRobot implements Constants{
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
+
+  // Robot Drive Train
+	private Victor leftSideMotor = new Victor(LSMOTOR);
+	private Victor rightSideMotor = new Victor(RSMOTOR);
+
+	private SpeedControllerGroup leftSideGroup = new SpeedControllerGroup(leftSideMotor); //
+  private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
+
+	private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
+
+	// Controllers
+	private Joystick gamepad = new Joystick(0);
+	private Joystick joystick = new Joystick(1);
+
+  //motor speed varibles 
+  double leftSpeed = 0;
+  double rightSpeed = 0;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -93,5 +115,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
+  }
+
+  //sets the motor speeds of all motors after the code has been run.
+  public void SendMotorSpeeds(){
+
   }
 }
