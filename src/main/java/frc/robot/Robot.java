@@ -36,7 +36,10 @@ public class Robot extends TimedRobot implements Constants{
 	private SpeedControllerGroup leftSideGroup = new SpeedControllerGroup(leftSideMotor); //
   private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
 
-	private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
+  private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
+  
+  //Robot Arm
+  private Victor ArmElevationMotors = new Victor(ElevationMotorPort);
 
 	// Controllers
 	private Joystick gamepad = new Joystick(0);
@@ -117,8 +120,46 @@ public class Robot extends TimedRobot implements Constants{
   public void testPeriodic() {
   }
 
+	// Limits a variable to to a given range
+	public double Limit(double value, double min, double max) {
+		if (value > max)
+			return max;
+		if (value < min)
+			return min;
+		return value;
+	}
+
+  //used for the deadband on the joystick
+  public double jsDeadband(double js) {
+		js = Limit(js, -1.0, 1.0);
+		if (Math.abs(js) <= JOYDB)
+			return 0.0;
+		if (js > JOYDB)
+			return (js - JOYDB) / (1.0 - JOYDB);
+		else
+			return (js + JOYDB) / (1.0 - JOYDB);
+  }
+  
+  //used for the deadband on the motor
+  public double deadband(double input, double motorDeadband) {
+		input = Limit(input, -1.0, 1.0);
+		if (input == 0.0)
+			return 0.0;
+		else if (input > 0)
+			return (1 - motorDeadband) * input + motorDeadband;
+		else
+			return (1 - motorDeadband) * input - motorDeadband;
+	}
+  
+  public void DriveWithController() {
+    leftSpeed = deadband(jsDeadband(gamepad.getRawAxis(3)), DRIVEDB);
+    rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
+		
+	}
+
   //sets the motor speeds of all motors after the code has been run.
   public void SendMotorSpeeds(){
+    driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
 
   }
 }

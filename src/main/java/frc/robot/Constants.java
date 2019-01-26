@@ -12,7 +12,17 @@ package frc.robot;
  * this file should be well commented and documented for ease of use by non-programmers
  */
 public interface Constants {
-    //motor ports 
-    int LSMOTOR = 0;
-    int  RSMOTOR = 1;
+    //Drive motor ports 
+    final int LSMOTOR = 0;
+    final int RSMOTOR = 1;
+
+    //Arm Motor ports
+    final int ElevationMotorPort = 3;
+
+    //Deadband Variables: For Joystick
+    final double JOYDB 		= 0.05;
+    final double DRIVEDB    = 0.2;
+
+    //MotorMaxSpeedMultipliers
+    final double DriveMaxSpeed = 1;
 }
