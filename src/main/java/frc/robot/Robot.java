@@ -15,6 +15,18 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+
+
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.vision.VisionRunner;
+import edu.wpi.first.wpilibj.vision.VisionThread;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -28,6 +40,15 @@ public class Robot extends TimedRobot implements Constants{
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  //ROBOT VISION
+	private static final int IMG_WIDTH = 320;
+	private static final int IMG_HEIGHT = 240;
+	
+	private VisionThread visionThread;
+	private double centerX = 0.0;
+	private RobotDrive drive;
+	
+	private final Object imgLock = new Object();
 
   // Robot Drive Train
 	private Victor leftSideMotor = new Victor(LSMOTOR);
@@ -55,11 +76,26 @@ public class Robot extends TimedRobot implements Constants{
    */
   @Override
   public void robotInit() {
+    System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
   }
 
+  public void CameraInit(){
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    
+    visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
+        if (!pipeline.filterContoursOutput.isEmpty()) {
+            Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+            synchronized (imgLock) {
+                centerX = r.x + (r.width / 2);
+            }
+        }
+    });
+    visionThread.start();
+  }
   /**
    * This function is called every robot packet, no matter the mode. Use
    * this for items like diagnostics that you want ran during disabled,
@@ -111,6 +147,8 @@ public class Robot extends TimedRobot implements Constants{
    */
   @Override
   public void teleopPeriodic() {
+    DriveWithController();
+    SendMotorSpeeds();
   }
 
   /**
