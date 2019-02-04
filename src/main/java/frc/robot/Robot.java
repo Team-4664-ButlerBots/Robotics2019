@@ -76,6 +76,8 @@ public class Robot extends TimedRobot implements Constants{
    */
   @Override
   public void robotInit() {
+    //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    CameraInit();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
@@ -87,8 +89,8 @@ public class Robot extends TimedRobot implements Constants{
     camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
     visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-        if (!pipeline.filterContoursOutput.isEmpty()) {
-            Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+        if (!pipeline.findBlobsOutput().empty()) {
+            Rect r = Imgproc.boundingRect(pipeline.findBlobsOutput());
             synchronized (imgLock) {
                 centerX = r.x + (r.width / 2);
             }
@@ -96,6 +98,7 @@ public class Robot extends TimedRobot implements Constants{
     });
     visionThread.start();
   }
+  
   /**
    * This function is called every robot packet, no matter the mode. Use
    * this for items like diagnostics that you want ran during disabled,
@@ -137,6 +140,13 @@ public class Robot extends TimedRobot implements Constants{
         break;
       case kDefaultAuto:
       default:
+      //VISION DRIVE
+      double centerX;
+      synchronized (imgLock) {
+          centerX = this.centerX;
+      }
+      double turn = centerX - (IMG_WIDTH / 2);
+      drive.arcadeDrive(-0.2, turn * 0.005);
         // Put default auto code here
         break;
     }
