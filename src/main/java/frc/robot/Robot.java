@@ -138,6 +138,8 @@ public class Robot extends TimedRobot implements Constants {
   @Override
   public void teleopPeriodic() {
     DriveWithController();
+    ArmController();
+    SendMotorSpeeds();
 
   }
 
@@ -207,11 +209,12 @@ public class Robot extends TimedRobot implements Constants {
     
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
 
-    if (armLSTop.get()) {
+   /* if (armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
     } else if (armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     }
+    */
     armMotors.set(armSpeed);
   }
 
