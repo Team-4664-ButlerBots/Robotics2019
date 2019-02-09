@@ -41,12 +41,11 @@ public class Robot extends TimedRobot implements Constants{
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   //ROBOT VISION
-	private static final int IMG_WIDTH = 320;
-	private static final int IMG_HEIGHT = 240;
+	private static final int IMG_WIDTH = 190;
+	private static final int IMG_HEIGHT = 144;
 	
 	private VisionThread visionThread;
 	private double centerX = 0.0;
-	private RobotDrive drive;
 	
 	private final Object imgLock = new Object();
 
@@ -58,7 +57,7 @@ public class Robot extends TimedRobot implements Constants{
   private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
 
   private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
-  
+
   //Robot Arm
   private Victor ArmElevationMotors = new Victor(ElevationMotorPort);
 
@@ -77,6 +76,7 @@ public class Robot extends TimedRobot implements Constants{
   @Override
   public void robotInit() {
     //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    driveTrain.setSafetyEnabled(false);
     CameraInit();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
@@ -89,8 +89,8 @@ public class Robot extends TimedRobot implements Constants{
     camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
     visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-        if (!pipeline.findBlobsOutput().empty()) {
-            Rect r = Imgproc.boundingRect(pipeline.findBlobsOutput());
+      if (!pipeline.filterContoursOutput().isEmpty()) {
+        Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
             synchronized (imgLock) {
                 centerX = r.x + (r.width / 2);
             }
@@ -139,17 +139,26 @@ public class Robot extends TimedRobot implements Constants{
         // Put custom auto code here
         break;
       case kDefaultAuto:
+        TrackTarget();
+        break;
       default:
-      //VISION DRIVE
-      double centerX;
-      synchronized (imgLock) {
-          centerX = this.centerX;
-      }
-      double turn = centerX - (IMG_WIDTH / 2);
-      drive.arcadeDrive(-0.2, turn * 0.005);
-        // Put default auto code here
+        System.out.println("WARNING INVALID AUTO SELECTED");
+        //etan is tarded
         break;
     }
+  }
+
+  public void TrackTarget(){
+    double centerX = 0.5;
+    synchronized (imgLock) {
+        centerX = this.centerX;
+    }
+
+    double turn = centerX - (IMG_WIDTH / 2);
+    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2;
+    SmartDashboard.putNumber("turn", turn);
+    SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
+    driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
   }
 
   /**
