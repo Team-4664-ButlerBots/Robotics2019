@@ -12,7 +12,8 @@ public class Pneumatic {
 	
 	public void testPneumatics(){
 		solenoidyboi.set(DoubleSolenoid.Value.kForward);
-		solenoidyboi.set(DoubleSolenoid.Value.kReverse);
+	}
+	public void stopPneumatics(){
 		solenoidyboi.set(DoubleSolenoid.Value.kOff);
 	}
 }

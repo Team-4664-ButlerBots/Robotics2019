@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import frc.robot.Pneumatic;
 
 /**
 * The VM is configured to automatically run this class, and to call the
@@ -100,9 +101,13 @@ public class Robot extends TimedRobot implements Constants{
 	@Override
 	public void autonomousPeriodic() {
 		switch (m_autoSelected) {
-		case kCustomAuto:
-			pneumaticSystem.testPneumatics();
+    case kCustomAuto:
+      if(gamepad.getRawButton(2))
+        pneumaticSystem.testPneumatics();
+      else if(gamepad.getRawButton(3))
+        pneumaticSystem.stopPneumatics();
 			break;
+
 		case kDefaultAuto:
 		default:
 			// Put default auto code here
@@ -165,3 +170,4 @@ public class Robot extends TimedRobot implements Constants{
 		driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
 	}
 }
+
