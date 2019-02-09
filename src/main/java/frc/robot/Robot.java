@@ -185,13 +185,13 @@ public class Robot extends TimedRobot implements Constants {
       return (1 - motorDeadband) * input - motorDeadband;
   }
 
+  double DriveMaxSpeed;
   public void DriveWithController() {
     if (gamepad.getRawButton(7)) {
-      armSpeed = Limit(armSpeed, -0.5, .5);
+      DriveMaxSpeed = 0.5;
     } else if (gamepad.getRawButton(8)) {
-      armSpeed = Limit(armSpeed, -1, 1);
+      DriveMaxSpeed = 1;
     }
-    armMotors.set(armSpeed);
     leftSpeed = deadband(jsDeadband(gamepad.getRawAxis(3)), DRIVEDB);
     rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
 
@@ -201,8 +201,10 @@ public class Robot extends TimedRobot implements Constants {
     armSpeed = deadband(jsDeadband(joystick.getY()), ARMDB);
   }
 
+
   // sets the motor speeds of all motors after the code has been run.
   public void SendMotorSpeeds() {
+    
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
 
     if (armLSTop.get()) {

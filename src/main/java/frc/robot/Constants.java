@@ -25,5 +25,4 @@ public interface Constants {
     final double ARMDB      = 0.1;
 
     //MotorMaxSpeedMultipliers
-    final double DriveMaxSpeed = 1;
 }
