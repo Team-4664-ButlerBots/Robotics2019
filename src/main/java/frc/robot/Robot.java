@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
-
+import frc.robot.GripPipeline;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
@@ -45,7 +45,7 @@ public class Robot extends TimedRobot implements Constants{
 
   //NETWORK TABLES
   NetworkTableInstance network = NetworkTableInstance.getDefault();
-  NetworkTable table = network.getTable("");
+  NetworkTable table = network.getTable("TestTable");
 
   //ROBOT VISION
 	private static final int IMG_WIDTH = 190;
@@ -134,6 +134,7 @@ public class Robot extends TimedRobot implements Constants{
   NetworkTableEntry turnMultiplier;
   @Override
   public void autonomousInit() {
+    turnMultiplier.setDouble(0);
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
@@ -168,7 +169,7 @@ public class Robot extends TimedRobot implements Constants{
 
     double turn = centerX - (IMG_WIDTH / 2);
     //double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2;
-    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*;
+    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)* turnMultiplier.getValue().getDouble();
     SmartDashboard.putNumber("turn", turn);
     SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
     driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
