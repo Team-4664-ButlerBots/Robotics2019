@@ -22,6 +22,7 @@ public interface Constants {
     //Deadband Variables: For Joystick
     final double JOYDB 		= 0.05;
     final double DRIVEDB    = 0.2;
+    final double ARMDB      = 0.1;
 
     //MotorMaxSpeedMultipliers
     final double DriveMaxSpeed = 1;
