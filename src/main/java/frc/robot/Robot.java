@@ -21,6 +21,9 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -39,6 +42,10 @@ public class Robot extends TimedRobot implements Constants{
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
+  //NETWORK TABLES
+  NetworkTableInstance network = NetworkTableInstance.getDefault();
+  NetworkTable table = network.getTable("");
 
   //ROBOT VISION
 	private static final int IMG_WIDTH = 190;
@@ -122,6 +129,9 @@ public class Robot extends TimedRobot implements Constants{
    * the switch structure below with additional strings. If using the
    * SendableChooser make sure to add them to the chooser code above as well.
    */
+
+  NetworkTableEntry sigmoidA;
+  NetworkTableEntry turnMultiplier;
   @Override
   public void autonomousInit() {
     m_autoSelected = m_chooser.getSelected();
@@ -129,6 +139,8 @@ public class Robot extends TimedRobot implements Constants{
     System.out.println("Auto selected: " + m_autoSelected);
   }
 
+
+  
   /**
    * This function is called periodically during autonomous.
    */
@@ -155,7 +167,8 @@ public class Robot extends TimedRobot implements Constants{
     }
 
     double turn = centerX - (IMG_WIDTH / 2);
-    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2;
+    //double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2;
+    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*;
     SmartDashboard.putNumber("turn", turn);
     SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
     driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
@@ -220,3 +233,4 @@ public class Robot extends TimedRobot implements Constants{
 
   }
 }
+
