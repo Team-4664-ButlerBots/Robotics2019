@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Ultrasonic;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -28,6 +30,9 @@ public class Robot extends TimedRobot implements Constants {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
+  // creates ultra sonic sensor
+  Ultrasonic ultra = new Ultrasonic(3, 4);
 
   // initilize limit switch
   DigitalInput armLSTop;
@@ -67,6 +72,7 @@ public class Robot extends TimedRobot implements Constants {
     SmartDashboard.putData("Auto choices", m_chooser);
     armLSBottom = new DigitalInput(0);
     armLSTop = new DigitalInput(1);
+    ultraAuto();
   }
 
   /**
@@ -141,6 +147,12 @@ public class Robot extends TimedRobot implements Constants {
       return min;
     return value;
   }
+
+  // Ultra Sonic Sensor
+  public void ultraAuto() {
+    ultra.setAutomaticMode(true);
+  }
+
 
   // used for the deadband on the joystick
   public double jsDeadband(double js) {
