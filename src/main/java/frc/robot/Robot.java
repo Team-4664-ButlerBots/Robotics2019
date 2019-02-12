@@ -44,15 +44,16 @@ public class Robot extends TimedRobot implements Constants{
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   //NETWORK TABLES
-  NetworkTableInstance network = NetworkTableInstance.getDefault();
-  NetworkTable table = network.getTable("TestTable");
+  //NetworkTableInstance network = NetworkTableInstance.getDefault();
+  //sNetworkTable table = network.getTable("TestTable");
 
   //ROBOT VISION
 	private static final int IMG_WIDTH = 190;
 	private static final int IMG_HEIGHT = 144;
 	
-	private VisionThread visionThread;
-	private double centerX = 0.0;
+	private VisionThread ballVisionThread;
+  private double ballCenterX = 0.0;
+  private double ballCenterY = 0.0;
 	
 	private final Object imgLock = new Object();
 
@@ -84,26 +85,27 @@ public class Robot extends TimedRobot implements Constants{
   public void robotInit() {
     //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
     driveTrain.setSafetyEnabled(false);
-    CameraInit();
+    BallCameraInit();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
   }
 
-  public void CameraInit(){
-    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+  public void BallCameraInit(){
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(1);
     camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
-    visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
+    ballVisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
       if (!pipeline.filterContoursOutput().isEmpty()) {
         Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
             synchronized (imgLock) {
-                centerX = r.x + (r.width / 2);
+                ballCenterX = r.x + (r.width / 2);
+                ballCenterY = r.y + (r.height / 2);
             }
         }
     });
-    visionThread.start();
+    ballVisionThread.start();
   }
   
   /**
@@ -130,11 +132,9 @@ public class Robot extends TimedRobot implements Constants{
    * SendableChooser make sure to add them to the chooser code above as well.
    */
 
-  NetworkTableEntry sigmoidA;
-  NetworkTableEntry turnMultiplier;
+
   @Override
   public void autonomousInit() {
-    turnMultiplier.setDouble(0);
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
@@ -152,7 +152,7 @@ public class Robot extends TimedRobot implements Constants{
         // Put custom auto code here
         break;
       case kDefaultAuto:
-        TrackTarget();
+        TrackBall();
         break;
       default:
         System.out.println("WARNING INVALID AUTO SELECTED");
@@ -161,15 +161,14 @@ public class Robot extends TimedRobot implements Constants{
     }
   }
 
-  public void TrackTarget(){
+  public void TrackBall(){
     double centerX = 0.5;
     synchronized (imgLock) {
-        centerX = this.centerX;
+        centerX = this.ballCenterX;
     }
 
     double turn = centerX - (IMG_WIDTH / 2);
-    //double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2;
-    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)* turnMultiplier.getValue().getDouble();
+    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2.5;    
     SmartDashboard.putNumber("turn", turn);
     SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
     driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
