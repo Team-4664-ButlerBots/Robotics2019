@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Compressor;
 import frc.robot.Pneumatic;
 
 /**
@@ -43,7 +44,8 @@ public class Robot extends TimedRobot implements Constants{
 	
 	//wew
 	private DoubleSolenoid solenoidyboi = new DoubleSolenoid(1, 2);
-	private Pneumatic pneumaticSystem = new Pneumatic(solenoidyboi);
+	private Compressor compressyboi = new Compressor();
+	private Pneumatic pneumaticSystem = new Pneumatic(solenoidyboi, compressyboi);
 
 	// Controllers
 	private Joystick gamepad = new Joystick(0);
@@ -110,6 +112,12 @@ public class Robot extends TimedRobot implements Constants{
 
 		case kDefaultAuto:
 		default:
+			if(gamepad.getRawButton(1))
+				pneumaticSystem.testPneumatics2();
+			else if(gamepad.getRawButton(2))
+				pneumaticSystem.testPneumatics();
+			else if(gamepad.getRawButton(3))
+				pneumaticSystem.stopPneumatics();
 			// Put default auto code here
 			break;
 		}
