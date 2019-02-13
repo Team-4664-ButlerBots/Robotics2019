@@ -21,6 +21,7 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -47,15 +48,7 @@ public class Robot extends TimedRobot implements Constants{
   //NetworkTableInstance network = NetworkTableInstance.getDefault();
   //sNetworkTable table = network.getTable("TestTable");
 
-  //ROBOT VISION
-	private static final int IMG_WIDTH = 190;
-	private static final int IMG_HEIGHT = 144;
-	
-	private VisionThread ballVisionThread;
-  private double ballCenterX = 0.0;
-  private double ballCenterY = 0.0;
-	
-	private final Object imgLock = new Object();
+
 
   // Robot Drive Train
 	private Victor leftSideMotor = new Victor(LSMOTOR);
@@ -81,32 +74,19 @@ public class Robot extends TimedRobot implements Constants{
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
    */
+  Vision vision= new Vision(driveTrain);
   @Override
   public void robotInit() {
     //UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    vision.StartBallVisionThread();
     driveTrain.setSafetyEnabled(false);
-    BallCameraInit();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
   }
 
-  public void BallCameraInit(){
-    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(1);
-    camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-    
-    ballVisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-      if (!pipeline.filterContoursOutput().isEmpty()) {
-        Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
-            synchronized (imgLock) {
-                ballCenterX = r.x + (r.width / 2);
-                ballCenterY = r.y + (r.height / 2);
-            }
-        }
-    });
-    ballVisionThread.start();
-  }
+
   
   /**
    * This function is called every robot packet, no matter the mode. Use
@@ -152,7 +132,7 @@ public class Robot extends TimedRobot implements Constants{
         // Put custom auto code here
         break;
       case kDefaultAuto:
-        TrackBall();
+        vision.TrackBall();
         break;
       default:
         System.out.println("WARNING INVALID AUTO SELECTED");
@@ -161,18 +141,7 @@ public class Robot extends TimedRobot implements Constants{
     }
   }
 
-  public void TrackBall(){
-    double centerX = 0.5;
-    synchronized (imgLock) {
-        centerX = this.ballCenterX;
-    }
 
-    double turn = centerX - (IMG_WIDTH / 2);
-    double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2.5;    
-    SmartDashboard.putNumber("turn", turn);
-    SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
-    driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
-  }
 
   /**
    * This function is called periodically during operator control.
