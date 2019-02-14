@@ -17,6 +17,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.vision.VisionRunner;
 import edu.wpi.first.wpilibj.vision.VisionThread;
 
+/*
+*todo create a generic vision class to be used for tracking ball and vision targets
+Class will take in a superclass object of The pipeline so that different grip pipelines can be fed into the 
+constructor.
+*/
+
 /**
  * Add your docs here.
  */
@@ -36,11 +42,11 @@ public class Vision {
     private final Object ballImgLock = new Object();
 
     public void StartBallVisionThread(){
+        
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);;
         camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
         
-
-        
+        //draws a rect around the found contours and sets 
         ballVisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
         if (!pipeline.filterContoursOutput().isEmpty()) {
             Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
@@ -61,6 +67,7 @@ public class Vision {
     
         double turn = centerX - (IMG_WIDTH / 2);
         
+        //0.018 maps -360 to 360 to -1 to 1 
         double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2.5;    
         SmartDashboard.putNumber("turn", turn);
         SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
