@@ -48,20 +48,28 @@ public class Vision {
                     ballCenterX = r.x + (r.width / 2);
                     ballCenterY = r.y + (r.height / 2);
                 }
+        }/*else{
+                synchronized (imgLock) {
+                    ballCenterX = IMG_WIDTH / 2;
+                    ballCenterY = IMG_HEIGHT / 2;
+                }
             }
+            */
         });
         ballVisionThread.start();
     }
 
     public void TrackBall(){
-        double centerX = 0.5;
+
+        double centerX = IMG_WIDTH / 2;
         synchronized (imgLock) {
             centerX = this.ballCenterX;
         }
     
+        
         double turn = centerX - (IMG_WIDTH / 2);
         
-        double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2.5;    
+        double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*3.5;    
         SmartDashboard.putNumber("turn", turn);
         SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
         driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
