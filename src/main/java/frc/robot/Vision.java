@@ -14,6 +14,7 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.vision.VisionPipeline;
 import edu.wpi.first.wpilibj.vision.VisionRunner;
 import edu.wpi.first.wpilibj.vision.VisionThread;
 
@@ -28,59 +29,72 @@ constructor.
  */
 public class Vision {
     DifferentialDrive driveTrain;
-    public Vision(DifferentialDrive driveTrain){
+    VisionPipeline cvPipeline;
+
+    public Vision(DifferentialDrive driveTrain) {
         this.driveTrain = driveTrain;
+        cvPipeline = new GripPipeline();
+    }
+    // this is for creating vision pipelines with different pipelines. This would
+    // for example allow us to have a vision object for
+    // the reflective tape and a vision object for the ball
+    public Vision(DifferentialDrive driveTrain, VisionPipeline cvPipeline) {
+        this.driveTrain = driveTrain;
+        this.cvPipeline = cvPipeline;
     }
 
-      //ROBOT VISION
-	private static final int IMG_WIDTH = 160;
-	private static final int IMG_HEIGHT = 120;
-	private final Object imgLock = new Object();
-    private VisionThread ballVisionThread;
-    private double ballCenterX = 0.0;
-    private double ballCenterY = 0.0;
-    private final Object ballImgLock = new Object();
+    // ROBOT VISION
+    private static final int IMG_WIDTH = 160;
+    private static final int IMG_HEIGHT = 120;
+    private final Object imgLock = new Object();
+    private VisionThread VisionThread;
+    private double CenterX = 0.0;
+    private double CenterY = 0.0;
+    // used for safely accesing data managed by multiple threads
+    private final Object ImgLock = new Object();
 
-    public void StartBallVisionThread(){
-        
-        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);;
+    public void StartBallVisionThread() {
+
+        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
         camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-        
-        //draws a rect around the found contours and sets 
-        ballVisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-        if (!pipeline.filterContoursOutput().isEmpty()) {
-            Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+
+
+        // draws a rect around the found contours and sets
+        VisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
+            if (!pipeline.filterContoursOutput().isEmpty()) {
+                Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
                 synchronized (imgLock) {
-                    ballCenterX = r.x + (r.width / 2);
-                    ballCenterY = r.y + (r.height / 2);
+                    CenterX = r.x + (r.width / 2);
+                    CenterY = r.y + (r.height / 2);
+                }
+            } else {
+                synchronized (imgLock) {
+                    CenterX = IMG_WIDTH / 2;
+                    CenterY = IMG_HEIGHT / 2;
                 }
             }
+
         });
-        ballVisionThread.start();
+        VisionThread.start();
     }
 
-    public void TrackBall(){
-        double centerX = 0.5;
+    public void TrackBall() {
+
+        double centerX = IMG_WIDTH / 2;
         synchronized (imgLock) {
-            centerX = this.ballCenterX;
+            centerX = this.CenterX;
         }
-    
-        double turn = centerX - (IMG_WIDTH / 2);
-        
-        //0.018 maps -360 to 360 to -1 to 1 
-        double sigmoidTurn = Utility.Sigmoid(turn, 0.018)*2.5;    
+
+        // this turn variable should be a percent of the pixel width ranging from 0 to 1
+        double turn = (centerX - (IMG_WIDTH / 2)) / IMG_WIDTH;
+        double sigmoidTurn = Utility.Sigmoid(turn, 1) * 2.5;
+        /*
+         * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
+         * Utility.Sigmoid(turn, 0.018)*3.5;
+         */
         SmartDashboard.putNumber("turn", turn);
         SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
-        driveTrain.arcadeDrive(0.2, sigmoidTurn) ;
+        driveTrain.arcadeDrive(0.2, sigmoidTurn);
     }
-
-    public void StartTargetVisionThread(){
-        
-    }
-
-    public void TrackTarget(){
-
-    }
-
 
 }
