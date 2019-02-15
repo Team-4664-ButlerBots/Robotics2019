@@ -35,6 +35,7 @@ public class Vision {
         this.driveTrain = driveTrain;
         cvPipeline = new GripPipeline();
     }
+
     // this is for creating vision pipelines with different pipelines. This would
     // for example allow us to have a vision object for
     // the reflective tape and a vision object for the ball
@@ -58,7 +59,6 @@ public class Vision {
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
         camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-
         // draws a rect around the found contours and sets
         VisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
             if (!pipeline.filterContoursOutput().isEmpty()) {
@@ -68,9 +68,10 @@ public class Vision {
                     CenterY = r.y + (r.height / 2);
                 }
             } else {
+                //if there are no contours found then 
                 synchronized (imgLock) {
-                    CenterX = IMG_WIDTH / 2;
-                    CenterY = IMG_HEIGHT / 2;
+                    CenterX = -1;
+                    CenterY = -1;
                 }
             }
 
@@ -84,17 +85,21 @@ public class Vision {
         synchronized (imgLock) {
             centerX = this.CenterX;
         }
+        if (CenterX != -1 && CenterY != -1) {
 
-        // this turn variable should be a percent of the pixel width ranging from 0 to 1
-        double turn = (centerX - (IMG_WIDTH / 2)) / IMG_WIDTH;
-        double sigmoidTurn = Utility.Sigmoid(turn, 1) * 2.5;
-        /*
-         * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
-         * Utility.Sigmoid(turn, 0.018)*3.5;
-         */
-        SmartDashboard.putNumber("turn", turn);
-        SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
-        driveTrain.arcadeDrive(0.2, sigmoidTurn);
+            // this turn variable should be a percent of the pixel width ranging from 0 to 1
+            double turn = (centerX - (IMG_WIDTH / 2)) / IMG_WIDTH;
+            double sigmoidTurn = Utility.Sigmoid(turn, 1) * 2.5;
+            /*
+             * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
+             * Utility.Sigmoid(turn, 0.018)*3.5;
+             */
+            SmartDashboard.putNumber("turn", turn);
+            SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
+            driveTrain.arcadeDrive(0.2, sigmoidTurn);
+        }else{
+            driveTrain.arcadeDrive(0, 0);
+        }
     }
 
 }
