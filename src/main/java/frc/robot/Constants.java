@@ -13,8 +13,8 @@ package frc.robot;
  */
 public interface Constants {
     //Drive motor ports 
-    final int LSMOTOR = 0;
-    final int RSMOTOR = 1;
+    final int LSMOTOR = 8;
+    final int RSMOTOR = 9;
 
     //Arm Motor ports
     final int ElevationMotorPort = 7;
