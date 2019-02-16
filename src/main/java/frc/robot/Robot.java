@@ -147,7 +147,7 @@ public class Robot extends TimedRobot implements Constants {
       updateUltaDistance();
       ArmController();
     }
-    DriveWithController();
+    //DriveWithController();
     //ArmController();
     SendMotorSpeeds();
 
@@ -227,9 +227,9 @@ public class Robot extends TimedRobot implements Constants {
     
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
     
-    if (armLSTop.get()) {
+    if (!armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
-    } else if (armLSBottom.get()) {
+    } else if (!armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     } 
     
