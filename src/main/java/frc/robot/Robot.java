@@ -34,7 +34,7 @@ public class Robot extends TimedRobot implements Constants {
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   // creates ultra sonic sensor
-    Ultrasonic ultra = new Ultrasonic(3, 4);
+    Ultrasonic ultra = new Ultrasonic(ULTRASONICPORT1, ULTRASONICPORT2);
     //Ultrasonic value is the distance between the ultra sonic sensor and the plate
     double ultraValue;
 
@@ -80,8 +80,8 @@ public class Robot extends TimedRobot implements Constants {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-    armLSBottom = new DigitalInput(0);
-    armLSTop = new DigitalInput(1);
+    armLSBottom = new DigitalInput(BOTTOMLSPORT);
+    armLSTop = new DigitalInput(TOPLSPORT);
     ultraAuto();
   }
 
@@ -145,9 +145,10 @@ public class Robot extends TimedRobot implements Constants {
       armToUltra();
     }else{
       updateUltaDistance();
-      DriveWithController();
       ArmController();
     }
+    DriveWithController();
+    //ArmController();
     SendMotorSpeeds();
 
   }
@@ -181,9 +182,6 @@ public class Robot extends TimedRobot implements Constants {
   public void armToUltra(){
     armSpeed = Utility.Sigmoid(ultra.getRangeMM(), 1, ultraValue);
   }
-
-
-
 
   // used for the deadband on the joystick
   public double jsDeadband(double js) {
@@ -228,12 +226,13 @@ public class Robot extends TimedRobot implements Constants {
   public void SendMotorSpeeds() {
     
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
-
+    
     if (armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
     } else if (armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     } 
+    
       armMotors.set(armSpeed);
   }
 

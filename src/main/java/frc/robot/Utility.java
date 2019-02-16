@@ -14,4 +14,8 @@ public class Utility {
     public static double Sigmoid(double input, double angle ){
         return(1/(1+Math.pow(Math.E, -input * angle)))-0.5f;
     }
+
+    public static double Sigmoid(double input, double angle, double offset ){
+        return(1/(1+Math.pow(Math.E, (-input + offset) * angle)))-0.5f;
+    }
 }

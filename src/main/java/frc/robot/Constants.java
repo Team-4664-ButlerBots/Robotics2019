@@ -17,12 +17,16 @@ public interface Constants {
     final int RSMOTOR = 1;
 
     //Arm Motor ports
-    final int ElevationMotorPort = 3;
+    final int ElevationMotorPort = 7;
 
     //Deadband Variables: For Joystick
     final double JOYDB 		= 0.05;
     final double DRIVEDB    = 0.2;
     final double ARMDB      = 0.1;
 
-    //MotorMaxSpeedMultipliers
+    //Sensor ports
+    final int TOPLSPORT = 0;
+    final int BOTTOMLSPORT = 1;
+    final int ULTRASONICPORT1 = 2;
+    final int ULTRASONICPORT2 = 3;
 }
