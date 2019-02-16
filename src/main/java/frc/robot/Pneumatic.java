@@ -1,11 +1,15 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 public class Pneumatic {
 	private DoubleSolenoid solenoidyboi;
 	private Compressor compressyboi;
+	private boolean compressorForcedStatus;
+	private boolean pistonExtended;
+
 	//private DoubleSolenoid solenoidyboi = new DoubleSolenoid(1, 2);
 	
 	public Pneumatic(DoubleSolenoid solenoidyboi, Compressor compressyboi){
@@ -24,7 +28,11 @@ public class Pneumatic {
 	public void testPneumatics2(){
 		solenoidyboi.set(DoubleSolenoid.Value.kReverse);
 	}
+
 	public void stopPneumatics(){
 		solenoidyboi.set(DoubleSolenoid.Value.kOff);
+	}
+
+	public void controlPneumaticsWithController(Joystick gamepad){
 	}
 }
