@@ -36,7 +36,7 @@ public class Robot extends TimedRobot implements Constants {
   // creates ultra sonic sensor
   Ultrasonic ultra = new Ultrasonic(ULTRASONICPORT1, ULTRASONICPORT2);
   // Ultrasonic value is the distance between the ultra sonic sensor and the plate
-  double ultraValue;
+  double ultraValue = 10;
 
   // initilize limit switch
   DigitalInput armLSTop;
@@ -50,9 +50,6 @@ public class Robot extends TimedRobot implements Constants {
   private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
 
   private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
-
-  // Robot Arm
-  private Victor ArmElevationMotors = new Victor(ElevationMotorPort);
 
   // Robot Arm
   private Victor armMotors = new Victor(ElevationMotorPort);
@@ -81,8 +78,7 @@ public class Robot extends TimedRobot implements Constants {
   @Override
   public void robotInit() {
     // UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-    vision.StartBallVisionThread();
-    driveTrain.setSafetyEnabled(false);
+    // vision.StartBallVisionThread();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
@@ -90,6 +86,7 @@ public class Robot extends TimedRobot implements Constants {
     armLSBottom = new DigitalInput(BOTTOMLSPORT);
     armLSTop = new DigitalInput(TOPLSPORT);
     ultraAuto();
+    updateUltaDistance();
   }
 
   /**
@@ -138,7 +135,7 @@ public class Robot extends TimedRobot implements Constants {
         pneumaticSystem.stopPneumatics();
       break;
     case kDefaultAuto:
-        vision.TrackBall();
+      vision.TrackBall();
     default:
       // Put default auto code here
       break;
@@ -154,14 +151,15 @@ public class Robot extends TimedRobot implements Constants {
       armToUltra();
     } else {
       updateUltaDistance();
+      SmartDashboard.putNumber("ultra ", ultraValue);
       ArmController();
     }
     if (gamepad.getRawButton(5)) {
-      vision.TrackBall();
+      // vision.TrackBall();
     } else {
-      DriveWithController();
+      // DriveWithController();
     }
-    //SendMotorSpeeds();
+    SendMotorSpeeds();
   }
 
   /**
@@ -191,7 +189,8 @@ public class Robot extends TimedRobot implements Constants {
 
   // sets arm motor speeds to match the position of ultraValue;
   public void armToUltra() {
-    armSpeed = Utility.Sigmoid(ultra.getRangeMM(), 1, ultraValue);
+    armSpeed = -Utility.Sigmoid(ultra.getRangeMM(), 0.5, ultraValue);
+    SmartDashboard.putNumber("arm speed", armSpeed);
   }
 
   // used for the deadband on the joystick
@@ -220,7 +219,7 @@ public class Robot extends TimedRobot implements Constants {
 
   public void DriveWithController() {
     if (gamepad.getRawButton(7)) {
-      DriveMaxSpeed = 0.5;
+      DriveMaxSpeed = 0.65;
     } else if (gamepad.getRawButton(8)) {
       DriveMaxSpeed = 1;
     }
@@ -238,13 +237,12 @@ public class Robot extends TimedRobot implements Constants {
 
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
 
-    if (armLSTop.get()) {
+    if (!armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
-    } else if (armLSBottom.get()) {
+    } else if (!armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     }
-
-    armMotors.set(armSpeed);
+    armMotors.set(armSpeed * ARMSPEEDMULTIPLIER);
   }
 
 }
