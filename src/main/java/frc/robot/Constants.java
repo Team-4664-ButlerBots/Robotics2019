@@ -18,7 +18,7 @@ public interface Constants {
 
     //Arm Motor ports
     final int ElevationMotorPort = 7;
-    final double ARMSPEEDMULTIPLIER = 0.3;
+    final double ARMSPEEDMULTIPLIER = 0.5;
 
     //Deadband Variables: For Joystick
     final double JOYDB 		= 0.05;

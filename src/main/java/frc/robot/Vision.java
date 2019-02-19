@@ -92,6 +92,7 @@ public class Vision {
             if (CenterX != -1 && CenterY != -1) {
 
                 // this turn variable should be a percent of the pixel width ranging from 0 to 1
+                double multiplier = Utility.robotPrefs.getDouble("Vision Multiplier", 2);
                 double xPercent = ((centerX - (IMG_WIDTH / 2)) / IMG_WIDTH)*2;
                 double yPercent = ((centerY - (IMG_HEIGHT /2)) / IMG_HEIGHT)*2;
                 double sigmoidTurn = Utility.Sigmoid(xPercent, 1) * 2.5;

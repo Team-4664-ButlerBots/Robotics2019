@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Victor;
@@ -77,16 +78,19 @@ public class Robot extends TimedRobot implements Constants {
 
   @Override
   public void robotInit() {
+    Utility.robotPrefs = Preferences.getInstance();
+    System.out.println("Value = " + Utility.robotPrefs.getDouble("test", 3.0)); 
     // UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-    // vision.StartBallVisionThread();
+    vision.StartBallVisionThread();
     System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+    SmartDashboard.putNumber("Test", 68);
     armLSBottom = new DigitalInput(BOTTOMLSPORT);
     armLSTop = new DigitalInput(TOPLSPORT);
     ultraAuto();
-    updateUltaDistance();
+    updateUltraDistance();
   }
 
   /**
@@ -127,13 +131,10 @@ public class Robot extends TimedRobot implements Constants {
    */
   @Override
   public void autonomousPeriodic() {
+    vision.TrackBall();
     switch (m_autoSelected) {
     case kCustomAuto:
-      if (gamepad.getRawButton(2))
-        pneumaticSystem.testPneumatics();
-      else if (gamepad.getRawButton(3))
-        pneumaticSystem.stopPneumatics();
-      break;
+      vision.TrackBall();
     case kDefaultAuto:
       vision.TrackBall();
     default:
@@ -150,7 +151,7 @@ public class Robot extends TimedRobot implements Constants {
     if (jsDeadband(joystick.getY()) == 0) {
       armToUltra();
     } else {
-      updateUltaDistance();
+      updateUltraDistance();
       SmartDashboard.putNumber("ultra ", ultraValue);
       ArmController();
     }
@@ -158,6 +159,10 @@ public class Robot extends TimedRobot implements Constants {
       // vision.TrackBall();
     } else {
       // DriveWithController();
+    }
+
+    if(joystick.getRawButton(3)){
+      ultraValue = 400;
     }
     SendMotorSpeeds();
   }
@@ -183,13 +188,13 @@ public class Robot extends TimedRobot implements Constants {
     ultra.setAutomaticMode(true);
   }
 
-  public void updateUltaDistance() {
+  public void updateUltraDistance() {
     ultraValue = ultra.getRangeMM();
   }
 
   // sets arm motor speeds to match the position of ultraValue;
   public void armToUltra() {
-    armSpeed = -Utility.Sigmoid(ultra.getRangeMM(), 0.5, ultraValue);
+    armSpeed = -Utility.Sigmoid(ultra.getRangeMM() / 10, 0.5, ultraValue / 10);
     SmartDashboard.putNumber("arm speed", armSpeed);
   }
 
@@ -242,7 +247,7 @@ public class Robot extends TimedRobot implements Constants {
     } else if (!armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     }
-    armMotors.set(armSpeed * ARMSPEEDMULTIPLIER);
+    armMotors.set(Limit(armSpeed * ARMSPEEDMULTIPLIER, 0.15, 1));
   }
 
 }

@@ -128,7 +128,7 @@ public class GripPipeline implements VisionPipeline {
 			new Scalar(hue[1], sat[1], val[1]), out);
 	}
 
-	/**
+	/**^_^
 	 * Expands area of lower value in an image.
 	 * @param src the Image to erode.
 	 * @param kernel the kernel for erosion.
