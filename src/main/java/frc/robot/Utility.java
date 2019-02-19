@@ -7,12 +7,17 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Preferences;
+
 /**
  * Add your docs here.
+ * idk what this is
  */
 public class Utility {
+    public static Preferences robotPrefs;
+
     public static double Sigmoid(double input, double angle ){
-        return(1/(1+Math.pow(Math.E, -input * angle)))-0.5f;
+        return Sigmoid(input, angle, 0);
     }
 
     public static double Sigmoid(double input, double angle, double offset ){

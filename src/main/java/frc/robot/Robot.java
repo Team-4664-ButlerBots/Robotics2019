@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Victor;
@@ -34,55 +35,62 @@ public class Robot extends TimedRobot implements Constants {
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
   // creates ultra sonic sensor
-    Ultrasonic ultra = new Ultrasonic(ULTRASONICPORT1, ULTRASONICPORT2);
-    //Ultrasonic value is the distance between the ultra sonic sensor and the plate
-    double ultraValue;
+  Ultrasonic ultra = new Ultrasonic(ULTRASONICPORT1, ULTRASONICPORT2);
+  // Ultrasonic value is the distance between the ultra sonic sensor and the plate
+  double ultraValue = 10;
 
   // initilize limit switch
-    DigitalInput armLSTop;
-    DigitalInput armLSBottom;
+  DigitalInput armLSTop;
+  DigitalInput armLSBottom;
 
   // Robot Drive Train
-    private Victor leftSideMotor = new Victor(LSMOTOR);
-    private Victor rightSideMotor = new Victor(RSMOTOR);
+  private Victor leftSideMotor = new Victor(LSMOTOR);
+  private Victor rightSideMotor = new Victor(RSMOTOR);
 
-    private SpeedControllerGroup leftSideGroup = new SpeedControllerGroup(leftSideMotor); //
-    private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
+  private SpeedControllerGroup leftSideGroup = new SpeedControllerGroup(leftSideMotor); //
+  private SpeedControllerGroup rightSideGroup = new SpeedControllerGroup(rightSideMotor); //
 
   private DifferentialDrive driveTrain = new DifferentialDrive(leftSideGroup, rightSideGroup);
 
   // Robot Arm
-    private Victor armMotors = new Victor(ElevationMotorPort);
+  private Victor armMotors = new Victor(ElevationMotorPort);
 
   // Controllers
-    private Joystick gamepad = new Joystick(0);
-    private Joystick joystick = new Joystick(1);
+  private Joystick gamepad = new Joystick(0);
+  private Joystick joystick = new Joystick(1);
 
   // Drive motor speed varibles
-    double leftSpeed = 0;
-    double rightSpeed = 0;
+  double leftSpeed = 0;
+  double rightSpeed = 0;
 
   // Arm motor speed variables
-    double armSpeed = 0;
+  double armSpeed = 0;
 
-  
-
-	//wew
-	private DoubleSolenoid solenoidyboi = new DoubleSolenoid(1, 2);
-	private Pneumatic pneumaticSystem = new Pneumatic(solenoidyboi);
+  // wew
+  private DoubleSolenoid solenoidyboi = new DoubleSolenoid(1, 2);
+  private Pneumatic pneumaticSystem = new Pneumatic(solenoidyboi);
 
   /**
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
    */
+  Vision vision = new Vision(driveTrain);
+
   @Override
   public void robotInit() {
+    Utility.robotPrefs = Preferences.getInstance();
+    System.out.println("Value = " + Utility.robotPrefs.getDouble("test", 3.0));
+    // UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    vision.StartBallVisionThread();
+    System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+    SmartDashboard.putNumber("Test", 68);
     armLSBottom = new DigitalInput(BOTTOMLSPORT);
     armLSTop = new DigitalInput(TOPLSPORT);
     ultraAuto();
+    updateUltraDistance();
   }
 
   /**
@@ -110,6 +118,7 @@ public class Robot extends TimedRobot implements Constants {
    * switch structure below with additional strings. If using the SendableChooser
    * make sure to add them to the chooser code above as well.
    */
+
   @Override
   public void autonomousInit() {
     m_autoSelected = m_chooser.getSelected();
@@ -122,14 +131,12 @@ public class Robot extends TimedRobot implements Constants {
    */
   @Override
   public void autonomousPeriodic() {
+    vision.TrackBall();
     switch (m_autoSelected) {
     case kCustomAuto:
-      if(gamepad.getRawButton(2))
-        pneumaticSystem.testPneumatics();
-      else if(gamepad.getRawButton(3))
-        pneumaticSystem.stopPneumatics();
-      break;
+      vision.TrackBall();
     case kDefaultAuto:
+      vision.TrackBall();
     default:
       // Put default auto code here
       break;
@@ -141,16 +148,23 @@ public class Robot extends TimedRobot implements Constants {
    */
   @Override
   public void teleopPeriodic() {
-    if(jsDeadband(joystick.getY()) == 0){
+    if (jsDeadband(joystick.getY()) == 0) {
       armToUltra();
-    }else{
-      updateUltaDistance();
+    } else {
+      updateUltraDistance();
+      SmartDashboard.putNumber("ultra ", ultraValue);
       ArmController();
     }
-    //DriveWithController();
-    //ArmController();
-    SendMotorSpeeds();
+    if (gamepad.getRawButton(5)) {
+      // vision.TrackBall();
+    } else {
+      // DriveWithController();
+    }
 
+    if (joystick.getRawButton(3)) {
+      ultraValue = 400;
+    }
+    SendMotorSpeeds();
   }
 
   /**
@@ -174,13 +188,14 @@ public class Robot extends TimedRobot implements Constants {
     ultra.setAutomaticMode(true);
   }
 
-  public void updateUltaDistance(){
+  public void updateUltraDistance() {
     ultraValue = ultra.getRangeMM();
   }
 
-  //sets arm motor speeds to match the position of ultraValue;
-  public void armToUltra(){
-    armSpeed = Utility.Sigmoid(ultra.getRangeMM(), 1, ultraValue);
+  // sets arm motor speeds to match the position of ultraValue;
+  public void armToUltra() {
+    armSpeed = -Utility.Sigmoid(ultra.getRangeMM() / 10, 0.5, ultraValue / 10);
+    SmartDashboard.putNumber("arm speed", armSpeed);
   }
 
   // used for the deadband on the joystick
@@ -206,9 +221,10 @@ public class Robot extends TimedRobot implements Constants {
   }
 
   double DriveMaxSpeed = 1;
+
   public void DriveWithController() {
     if (gamepad.getRawButton(7)) {
-      DriveMaxSpeed = 0.5;
+      DriveMaxSpeed = 0.65;
     } else if (gamepad.getRawButton(8)) {
       DriveMaxSpeed = 1;
     }
@@ -221,20 +237,23 @@ public class Robot extends TimedRobot implements Constants {
     armSpeed = deadband(jsDeadband(joystick.getY()), ARMDB);
   }
 
-
   // sets the motor speeds of all motors after the code has been run.
   public void SendMotorSpeeds() {
-    
+
     driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
-    
+
     if (!armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
     } else if (!armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
-    } 
-    
-      armMotors.set(armSpeed);
+    }
+    armMotors.set(Limit(armSpeed * ARMSPEEDMULTIPLIER, 0.15, 1));
   }
 
 }
 
+  
+    
+  
+
+  
