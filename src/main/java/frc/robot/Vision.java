@@ -68,12 +68,6 @@ public class Vision {
                     CenterX = r.x + (r.width / 2);
                     CenterY = r.y + (r.height / 2);
                 }
-            } else {
-                // if there are no contours found then
-                synchronized (imgLock) {
-                    CenterX = -1;
-                    CenterY = -1;
-                }
             }
 
         });
@@ -89,26 +83,24 @@ public class Vision {
                 centerX = this.CenterX;
                 centerY = this.CenterY;
             }
-            if (CenterX != -1 && CenterY != -1) {
 
-                // this turn variable should be a percent of the pixel width ranging from 0 to 1
-                double multiplier = Utility.robotPrefs.getDouble("Vision Multiplier", 2);
-                double xPercent = ((centerX - (IMG_WIDTH / 2)) / IMG_WIDTH)*2;
-                double yPercent = ((centerY - (IMG_HEIGHT /2)) / IMG_HEIGHT)*2;
-                double sigmoidTurn = Utility.Sigmoid(xPercent, 1) * 2.5;
-                
-                /*
-                 * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
-                 * Utility.Sigmoid(turn, 0.018)*3.5;
-                 */
-                SmartDashboard.putNumber("xPercent", xPercent);
-                SmartDashboard.putNumber("yPercent", yPercent);
-                SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
-                //driveTrain.arcadeDrive(0.2, sigmoidTurn);
-            } else {
-                driveTrain.arcadeDrive(0, 0);
-            }
+            double multiplier = Utility.robotPrefs.getDouble("Vision Multiplier", 2);
+            double xPercent = ((centerX - (IMG_WIDTH / 2)) / IMG_WIDTH) * 2;
+            double yPercent = ((centerY - (IMG_HEIGHT / 2)) / IMG_HEIGHT) * 2;
+            double sigmoidTurn = Utility.Sigmoid(xPercent, 1) * 2.5;
+
+            /*
+             * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
+             * Utility.Sigmoid(turn, 0.018)*3.5;
+             */
+            SmartDashboard.putNumber("xPercent", xPercent);
+            SmartDashboard.putNumber("yPercent", yPercent);
+            SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
+            driveTrain.arcadeDrive(0.4, sigmoidTurn);
+        } else {
+            driveTrain.arcadeDrive(0, 0);
         }
+
     }
 
     public void PauseThread() throws InterruptedException {
@@ -116,7 +108,7 @@ public class Vision {
         VisionThread.wait();
     }
 
-    public void ResumeThread(){
+    public void ResumeThread() {
         VisionThread.notify();
         ThreadRunning = true;
     }

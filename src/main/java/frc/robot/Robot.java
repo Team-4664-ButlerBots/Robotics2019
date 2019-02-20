@@ -76,13 +76,11 @@ public class Robot extends TimedRobot implements Constants {
    */
   Vision vision = new Vision(driveTrain);
 
+  int test = -67;
   @Override
   public void robotInit() {
     Utility.robotPrefs = Preferences.getInstance();
-    System.out.println("Value = " + Utility.robotPrefs.getDouble("test", 3.0));
-    // UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
     vision.StartBallVisionThread();
-    System.out.println("TestPrint");
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -92,6 +90,8 @@ public class Robot extends TimedRobot implements Constants {
     ultraAuto();
     updateUltraDistance();
   }
+
+
 
   /**
    * This function is called every robot packet, no matter the mode. Use this for
@@ -104,6 +104,7 @@ public class Robot extends TimedRobot implements Constants {
    */
   @Override
   public void robotPeriodic() {
+    SmartDashboard.putNumber("LiveUltraRange",ultra.getRangeMM());
   }
 
   /**
@@ -143,28 +144,52 @@ public class Robot extends TimedRobot implements Constants {
     }
   }
 
+  @Override
+  public void teleopInit() {
+    updateUltraDistance();
+  }
+
   /**
    * This function is called periodically during operator control.
    */
+  boolean armOverride = false;
   @Override
   public void teleopPeriodic() {
-    if (jsDeadband(joystick.getY()) == 0) {
+    updateOverride();
+    if (jsDeadband(joystick.getY()) == 0 && !armOverride) {
       armToUltra();
     } else {
-      updateUltraDistance();
-      SmartDashboard.putNumber("ultra ", ultraValue);
       ArmController();
+      updateUltraDistance();      
     }
     if (gamepad.getRawButton(5)) {
-      // vision.TrackBall();
+       vision.TrackBall();
     } else {
-      // DriveWithController();
+       DriveWithController();
     }
 
-    if (joystick.getRawButton(3)) {
-      ultraValue = 400;
-    }
     SendMotorSpeeds();
+  }
+
+  private Double ballHeight = 400.0;
+  private Double discHeight = 400.0;
+  //directly sets the target ultra value for easily seting the height
+  public void setUltraHeight(){
+    if(joystick.getRawButton(6)){
+      ultraValue = ballHeight;
+    }
+    if(joystick.getRawButton(7)){
+      ultraValue = discHeight;
+    }
+  }
+
+  public void updateOverride(){
+    //overrides the ultra sonic sensor if something goes wrong. back up just in case
+    if(joystick.getRawButton(8)){
+      armOverride = true;
+    }else if(joystick.getRawButton(9)){
+      armOverride = false;
+    }
   }
 
   /**
@@ -190,12 +215,12 @@ public class Robot extends TimedRobot implements Constants {
 
   public void updateUltraDistance() {
     ultraValue = ultra.getRangeMM();
+    SmartDashboard.putNumber("Target ultra ", ultraValue);
   }
 
   // sets arm motor speeds to match the position of ultraValue;
   public void armToUltra() {
-    armSpeed = -Utility.Sigmoid(ultra.getRangeMM() / 10, 0.5, ultraValue / 10);
-    SmartDashboard.putNumber("arm speed", armSpeed);
+    armSpeed = Utility.Sigmoid(ultra.getRangeMM() / 10, 0.5, ultraValue / 10);
   }
 
   // used for the deadband on the joystick
@@ -220,34 +245,45 @@ public class Robot extends TimedRobot implements Constants {
       return (1 - motorDeadband) * input - motorDeadband;
   }
 
-  double DriveMaxSpeed = 1;
+  double DriveSpeedMultiplier = 1;
 
   public void DriveWithController() {
+    //this sets two speeds for the robot drive train
     if (gamepad.getRawButton(7)) {
-      DriveMaxSpeed = 0.65;
+      DriveSpeedMultiplier = 0.65;
     } else if (gamepad.getRawButton(8)) {
-      DriveMaxSpeed = 1;
+      DriveSpeedMultiplier = 1;
     }
     leftSpeed = deadband(jsDeadband(gamepad.getRawAxis(3)), DRIVEDB);
     rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
 
   }
-
+  
+  private Double minArmSpeed = -0.1;
   public void ArmController() {
     armSpeed = deadband(jsDeadband(joystick.getY()), ARMDB);
+    //this sets the minimum arm speed. This is set because when moving the arm 
+    //up we fight against gravity but when we move it down we work with gravity
+    //however when we need to climb the arm is used to press the robot up so this button lets us do that
+    if(joystick.getRawButton(3)){
+      minArmSpeed = -1.0;
+    }else{
+      minArmSpeed = .0;
+    }
   }
 
   // sets the motor speeds of all motors after the code has been run.
   public void SendMotorSpeeds() {
 
-    driveTrain.tankDrive(leftSpeed * DriveMaxSpeed, rightSpeed * DriveMaxSpeed);
+    driveTrain.tankDrive(leftSpeed * DriveSpeedMultiplier, rightSpeed * DriveSpeedMultiplier);
 
     if (!armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);
     } else if (!armLSBottom.get()) {
       armSpeed = Limit(armSpeed, 0, 1);
     }
-    armMotors.set(Limit(armSpeed * ARMSPEEDMULTIPLIER, 0.15, 1));
+    SmartDashboard.putNumber("arm speed", armSpeed);
+    armMotors.set(Limit(armSpeed * ARMSPEEDMULTIPLIER, -1, 1));
   }
 
 }
