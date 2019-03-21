@@ -67,8 +67,14 @@ public class Robot extends TimedRobot implements Constants {
   double armSpeed = 0;
 
   // wew
-  private DoubleSolenoid solenoidyboi = new DoubleSolenoid(1, 2);
-  private Pneumatic pneumaticSystem = new Pneumatic(solenoidyboi);
+  private DoubleSolenoid clampSolenoid = new DoubleSolenoid(1, 2);
+  private DoubleSolenoid ejectSolenoid = new DoubleSolenoid(3,4);
+  private DoubleSolenoid climbSolenoid = new DoubleSolenoid(5, 6);
+  private Pneumatic clampPneumatic = new Pneumatic(clampSolenoid);
+  private Pneumatic ejectPneumatic = new Pneumatic(ejectSolenoid);
+  private Pneumatic climbPneumatic = new Pneumatic(climbSolenoid);
+
+
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -169,6 +175,17 @@ public class Robot extends TimedRobot implements Constants {
     }
 
     SendMotorSpeeds();
+  }
+
+  //takes input from controller and updates pnematics
+  public void pneumaticInput(){
+    if(gamepad.getRawButton(2)){
+      ejectPneumatic.testPneumatics();
+    }else{
+      ejectPneumatic.stopPneumatics();
+    }
+
+    
   }
 
   private Double ballHeight = 400.0;
