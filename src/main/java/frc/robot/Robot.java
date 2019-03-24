@@ -67,12 +67,14 @@ public class Robot extends TimedRobot implements Constants {
   double armSpeed = 0;
 
   // wew
-  private DoubleSolenoid clampSolenoid = new DoubleSolenoid(1, 2);
-  private DoubleSolenoid ejectSolenoid = new DoubleSolenoid(3,4);
-  private DoubleSolenoid climbSolenoid = new DoubleSolenoid(5, 6);
-  private Pneumatic clampPneumatic = new Pneumatic(clampSolenoid);
+  private DoubleSolenoid ejectSolenoid = new DoubleSolenoid(0, 1);
+  private DoubleSolenoid clampSolenoid = new DoubleSolenoid(2, 3);
+  private DoubleSolenoid climbSolenoid = new DoubleSolenoid(4, 5);
   private Pneumatic ejectPneumatic = new Pneumatic(ejectSolenoid);
+  private Pneumatic clampPneumatic = new Pneumatic(clampSolenoid);
   private Pneumatic climbPneumatic = new Pneumatic(climbSolenoid);
+
+  private boolean isArmOpen = false;
 
 
 
@@ -173,19 +175,19 @@ public class Robot extends TimedRobot implements Constants {
     } else {
        DriveWithController();
     }
+    pneumaticInput();
 
     SendMotorSpeeds();
+
   }
 
   //takes input from controller and updates pnematics
   public void pneumaticInput(){
     if(gamepad.getRawButton(2)){
-      ejectPneumatic.testPneumatics();
-    }else{
-      ejectPneumatic.stopPneumatics();
+      clampPneumatic.testPneumatics();
+    }else if(gamepad.getRawButton(1)){
+      clampPneumatic.stopPneumatics();
     }
-
-    
   }
 
   private Double ballHeight = 400.0;
