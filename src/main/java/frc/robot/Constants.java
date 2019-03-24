@@ -12,22 +12,33 @@ package frc.robot;
  * this file should be well commented and documented for ease of use by non-programmers
  */
 public interface Constants {
+    //Drive settings 
+        //the power that changes the speed increase when turning
+        final double SPEEDEXPONENT  = 2;
+        //the multiplier that effects how much the speed changes when turning
+        final double SPEEDMULTIPLER = 0.65;
+
+        //SPEED LEVELS:
+        final double LOWSPEED = 0.4;
+        final double MEDSPEED = 0.75;
+        final double HIGHSPEED = 1;
+
     //Drive motor ports 
-    final int LSMOTOR = 8;
-    final int RSMOTOR = 9;
+        final int LSMOTOR = 8;
+        final int RSMOTOR = 9;
 
     //Arm Motor ports
-    final int ElevationMotorPort = 7;
-    final double ARMSPEEDMULTIPLIER = 0.5;
+        final int ElevationMotorPort = 7;
+        final double ARMSPEEDMULTIPLIER = 0.5;
 
     //Deadband Variables: For Joystick
-    final double JOYDB 		= 0.05;
-    final double DRIVEDB    = 0.2;
-    final double ARMDB      = 0.1;
+        final double JOYDB 		= 0.05;
+        final double DRIVEDB    = 0.2;
+        final double ARMDB      = 0.1;
 
     //Sensor ports
-    final int TOPLSPORT = 0;
-    final int BOTTOMLSPORT = 1;
-    final int ULTRASONICPORT1 = 2;
-    final int ULTRASONICPORT2 = 3;
+        final int TOPLSPORT = 0;
+        final int BOTTOMLSPORT = 1;
+        final int ULTRASONICPORT1 = 2;
+        final int ULTRASONICPORT2 = 3;
 }

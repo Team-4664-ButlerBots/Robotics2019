@@ -58,6 +58,8 @@ public class Robot extends TimedRobot implements Constants {
   // Controllers
   private Joystick gamepad = new Joystick(0);
   private Joystick joystick = new Joystick(1);
+  private ToggleableChooser triggerToggle = new ToggleableChooser(joystick, 1);
+  
 
   // Drive motor speed varibles
   double leftSpeed = 0;
@@ -155,6 +157,7 @@ public class Robot extends TimedRobot implements Constants {
   @Override
   public void teleopInit() {
     updateUltraDistance();
+    clampPneumatic.retractPneumatics();
   }
 
   /**
@@ -181,12 +184,23 @@ public class Robot extends TimedRobot implements Constants {
 
   }
 
+  //true is extended false is retracted
+  private boolean clampState = false;
   //takes input from controller and updates pnematics
   public void pneumaticInput(){
-    if(gamepad.getRawButton(2)){
-      clampPneumatic.testPneumatics();
-    }else if(gamepad.getRawButton(1)){
-      clampPneumatic.stopPneumatics();
+    if(triggerToggle.ButtonDown()){
+      clampState = !clampState;
+    }
+    if(clampState){
+      clampPneumatic.extendPneumatics();
+    }else{
+      clampPneumatic.retractPneumatics();
+    }
+
+    if(joystick.getRawButton(2)){
+      ejectPneumatic.extendPneumatics();
+    }else{
+      ejectPneumatic.retractPneumatics();
     }
   }
 
@@ -265,16 +279,23 @@ public class Robot extends TimedRobot implements Constants {
   }
 
   double DriveSpeedMultiplier = 1;
-
   public void DriveWithController() {
     //this sets two speeds for the robot drive train
     if (gamepad.getRawButton(7)) {
-      DriveSpeedMultiplier = 0.65;
+      DriveSpeedMultiplier = LOWSPEED;
     } else if (gamepad.getRawButton(8)) {
-      DriveSpeedMultiplier = 1;
+      DriveSpeedMultiplier = HIGHSPEED;
+    }else{
+      DriveSpeedMultiplier = MEDSPEED;
     }
     leftSpeed = deadband(jsDeadband(gamepad.getRawAxis(3)), DRIVEDB);
     rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
+
+    //increases the max speed when turning to allow more control at lower speeds
+    double maxDiff = 1 - DriveSpeedMultiplier; //distance of current max speed from 1
+    double speedDiff = Math.abs(leftSpeed - rightSpeed); //difference in each sides speed
+    double speedBuff = Math.pow(speedDiff/2, SPEEDEXPONENT) * (maxDiff * SPEEDMULTIPLER);
+    DriveSpeedMultiplier += speedBuff;
 
   }
   

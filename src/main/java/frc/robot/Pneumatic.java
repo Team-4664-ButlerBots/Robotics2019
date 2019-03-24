@@ -14,14 +14,14 @@ public class Pneumatic {
 	}
 	
 	//true state value
-	public void testPneumatics(){
+	public void extendPneumatics(){
 		if(!state){
 			solenoidyboi.set(DoubleSolenoid.Value.kOff);
 		}
 		solenoidyboi.set(DoubleSolenoid.Value.kForward);
 		state = true;
 	}
-	public void stopPneumatics(){
+	public void retractPneumatics(){
 		if(state){
 			solenoidyboi.set(DoubleSolenoid.Value.kOff);
 		}		
