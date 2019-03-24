@@ -7,6 +7,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -87,6 +90,15 @@ public class Robot extends TimedRobot implements Constants {
     armLSTop = new DigitalInput(TOPLSPORT);
     ultraAuto();
     updateUltaDistance();
+    networkTableinit();
+  }
+
+  NetworkTableEntry xentry;
+  public void networkTableinit(){
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    NetworkTable table = inst.getTable("vision");
+    xentry = table.getEntry("Xentry");
+    xentry.setDouble(0);
   }
 
   /**
@@ -100,6 +112,9 @@ public class Robot extends TimedRobot implements Constants {
    */
   @Override
   public void robotPeriodic() {
+    double x = 0;
+    x = xentry.getDouble(0);
+    System.out.println(x);
   }
 
   /**
