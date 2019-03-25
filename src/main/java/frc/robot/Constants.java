@@ -16,11 +16,11 @@ public interface Constants {
         //the power that changes the speed increase when turning
         final double SPEEDEXPONENT  = 2;
         //the multiplier that effects how much the speed changes when turning
-        final double SPEEDMULTIPLER = 0.65;
+        final double SPEEDMULTIPLER = 0.45;
 
         //SPEED LEVELS:
-        final double LOWSPEED = 0.4;
-        final double MEDSPEED = 0.75;
+        final double LOWSPEED = 0.55;
+        final double MEDSPEED = 0.8;
         final double HIGHSPEED = 1;
 
     //Drive motor ports 

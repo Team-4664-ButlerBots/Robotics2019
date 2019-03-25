@@ -157,7 +157,6 @@ public class Robot extends TimedRobot implements Constants {
   @Override
   public void teleopInit() {
     updateUltraDistance();
-    clampPneumatic.retractPneumatics();
   }
 
   /**
@@ -197,7 +196,7 @@ public class Robot extends TimedRobot implements Constants {
       clampPneumatic.retractPneumatics();
     }
 
-    if(joystick.getRawButton(2)){
+    if(!joystick.getRawButton(2)){
       ejectPneumatic.extendPneumatics();
     }else{
       ejectPneumatic.retractPneumatics();
@@ -292,7 +291,7 @@ public class Robot extends TimedRobot implements Constants {
     rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
 
     //increases the max speed when turning to allow more control at lower speeds
-    double maxDiff = 1 - DriveSpeedMultiplier; //distance of current max speed from 1
+    double maxDiff = (1 - DriveSpeedMultiplier) * DriveSpeedMultiplier; //distance of current max speed from 1
     double speedDiff = Math.abs(leftSpeed - rightSpeed); //difference in each sides speed
     double speedBuff = Math.pow(speedDiff/2, SPEEDEXPONENT) * (maxDiff * SPEEDMULTIPLER);
     DriveSpeedMultiplier += speedBuff;
