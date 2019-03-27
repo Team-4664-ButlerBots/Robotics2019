@@ -84,13 +84,13 @@ public class Robot extends TimedRobot implements Constants {
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
    */
-  Vision vision = new Vision(driveTrain);
+  Vision vision = new Vision(driveTrain, gamepad);
 
   int test = -67;
   @Override
   public void robotInit() {
     Utility.robotPrefs = Preferences.getInstance();
-    vision.StartBallVisionThread();
+    //vision.StartBallVisionThread();
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -173,13 +173,14 @@ public class Robot extends TimedRobot implements Constants {
       updateUltraDistance();      
     }
     if (gamepad.getRawButton(5)) {
-       vision.TrackBall();
+      vision.TrackBall();
     } else {
        DriveWithController();
+       SendMotorSpeeds();
     }
     pneumaticInput();
 
-    SendMotorSpeeds();
+
 
   }
 

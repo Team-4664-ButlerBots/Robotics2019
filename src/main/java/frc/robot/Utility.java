@@ -23,4 +23,18 @@ public class Utility {
     public static double Sigmoid(double input, double angle, double offset ){
         return(1/(1+Math.pow(Math.E, (-input + offset) * angle)))-0.5f;
     }
+
+    public static double Limit(double low, double high, double input){
+        if(input > high){
+            return high;
+        }else if(input < low){
+            return low;
+        }else{
+            return input;
+        }
+    }
+
+
+
+    
 }

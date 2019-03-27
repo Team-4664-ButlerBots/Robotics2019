@@ -12,6 +12,8 @@ import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.vision.VisionPipeline;
@@ -28,66 +30,51 @@ constructor.
  * Add your docs here.
  */
 public class Vision {
-    public boolean ThreadRunning = false;
     DifferentialDrive driveTrain;
-    VisionPipeline cvPipeline;
+    Joystick gamepad;
 
-    public Vision(DifferentialDrive driveTrain) {
-        this.driveTrain = driveTrain;
-        cvPipeline = new GripPipeline();
-    }
+    //NETWORKING
+    
+    NetworkTableEntry xCenter, yCenter, RectSize, AngleMultiplier, SpeedMultiplier;
+    NetworkTableInstance ntinst = NetworkTableInstance.getDefault();
+    NetworkTable table = ntinst.getTable("vision");
 
-    // this is for creating vision pipelines with different pipelines. This would
-    // for example allow us to have a vision object for
-    // the reflective tape and a vision object for the ball
-    public Vision(DifferentialDrive driveTrain, VisionPipeline cvPipeline) {
+    public Vision(DifferentialDrive driveTrain, Joystick _joy) {
         this.driveTrain = driveTrain;
-        this.cvPipeline = cvPipeline;
+        this.gamepad = _joy;
+        xCenter = table.getEntry("Xposition");
+        yCenter = table.getEntry("Yposition");
+        RectSize = table.getEntry("Size");
+        AngleMultiplier = table.getEntry("AngleMult");
+        SpeedMultiplier = table.getEntry("SpeedMult");
+        AngleMultiplier.setDouble(1);
+        SpeedMultiplier.setDouble(1);
     }
 
     // ROBOT VISION
-    private static final int IMG_WIDTH = 160;
+    private static final int IMG_WIDTH = 208;
     private static final int IMG_HEIGHT = 120;
-    private final Object imgLock = new Object();
-    private VisionThread VisionThread;
-    private double CenterX = 0.0;
-    private double CenterY = 0.0;
     // used for safely accesing data managed by multiple threads
-    private final Object ImgLock = new Object();
-
-    public void StartBallVisionThread() {
-
-        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
-        camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-
-        // draws a rect around the found contours and sets
-        VisionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-            if (!pipeline.filterContoursOutput().isEmpty()) {
-                Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
-                synchronized (imgLock) {
-                    CenterX = r.x + (r.width / 2);
-                    CenterY = r.y + (r.height / 2);
-                }
-            }
-
-        });
-        VisionThread.start();
-        ThreadRunning = true;
-    }
 
     public void TrackBall() {
-        if (ThreadRunning) {
-            double centerX = IMG_WIDTH / 2;
-            double centerY = IMG_HEIGHT / 2;
-            synchronized (imgLock) {
-                centerX = this.CenterX;
-                centerY = this.CenterY;
-            }
-
-            double multiplier = Utility.robotPrefs.getDouble("Vision Multiplier", 2);
+            double centerX = xCenter.getDouble(IMG_WIDTH / 2);
+            double centerY = yCenter.getDouble(IMG_HEIGHT / 2);
+            
+            double multiplier = Utility.robotPrefs.getDouble("angle Multiplier", 2);
             double xPercent = ((centerX - (IMG_WIDTH / 2)) / IMG_WIDTH) * 2;
             double yPercent = ((centerY - (IMG_HEIGHT / 2)) / IMG_HEIGHT) * 2;
-            double sigmoidTurn = Utility.Sigmoid(xPercent, 1) * 2.5;
+            double sigmoidTurn = Utility.Sigmoid(xPercent, 
+            Math.abs(xPercent * AngleMultiplier.getDouble(5))) * SpeedMultiplier.getDouble(1);
+
+            //==========EXPERIMENTAL===========
+            if(Math.abs(sigmoidTurn) < 0.2 && Math.abs(sigmoidTurn) > 0.01){
+                if(sigmoidTurn < 0){
+                    sigmoidTurn = -0.2;
+                }else{
+                    sigmoidTurn = 0.2;
+                }
+            }
+            //============END================
 
             /*
              * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
@@ -96,21 +83,7 @@ public class Vision {
             SmartDashboard.putNumber("xPercent", xPercent);
             SmartDashboard.putNumber("yPercent", yPercent);
             SmartDashboard.putNumber("Sigmoid", sigmoidTurn);
-            driveTrain.arcadeDrive(0.4, sigmoidTurn);
-        } else {
-            driveTrain.arcadeDrive(0, 0);
-        }
-
-    }
-
-    public void PauseThread() throws InterruptedException {
-        ThreadRunning = false;
-        VisionThread.wait();
-    }
-
-    public void ResumeThread() {
-        VisionThread.notify();
-        ThreadRunning = true;
+            driveTrain.arcadeDrive(gamepad.getY(), sigmoidTurn);
     }
 
 }
