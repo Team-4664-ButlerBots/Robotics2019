@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -54,6 +55,7 @@ public class Robot extends TimedRobot implements Constants {
 
   // Robot Arm
   private Victor armMotors = new Victor(ElevationMotorPort);
+  private Talon climbDrive = new Talon(CLIMBDRIVEPORT);
 
   // Controllers
   private Joystick gamepad = new Joystick(0);
@@ -68,6 +70,9 @@ public class Robot extends TimedRobot implements Constants {
   // Arm motor speed variables
   double armSpeed = 0;
 
+  //Climb speeds
+  double climbDriveSpeed = 0;
+
   // wew
   private DoubleSolenoid ejectSolenoid = new DoubleSolenoid(0, 1);
   private DoubleSolenoid clampSolenoid = new DoubleSolenoid(2, 3);
@@ -75,6 +80,7 @@ public class Robot extends TimedRobot implements Constants {
   private Pneumatic ejectPneumatic = new Pneumatic(ejectSolenoid);
   private Pneumatic clampPneumatic = new Pneumatic(clampSolenoid);
   private Pneumatic climbPneumatic = new Pneumatic(climbSolenoid);
+
 
   private boolean isArmOpen = false;
 
@@ -184,8 +190,19 @@ public class Robot extends TimedRobot implements Constants {
 
   }
 
+  public void climbInput(){
+    if(joystick.getRawButton(11)){
+      climbDriveSpeed = 1;
+    }else if(joystick.getRawButton(11)){
+      climbDriveSpeed = -1;
+    }else{
+      climbDriveSpeed = 0;
+    }
+  }
+
   //true is extended false is retracted
   private boolean clampState = false;
+  private boolean ClimbPistionState = true; 
   //takes input from controller and updates pnematics
   public void pneumaticInput(){
     if(triggerToggle.ButtonDown()){
@@ -196,11 +213,21 @@ public class Robot extends TimedRobot implements Constants {
     }else{
       clampPneumatic.retractPneumatics();
     }
+    
 
     if(!joystick.getRawButton(2)){
       ejectPneumatic.extendPneumatics();
     }else{
       ejectPneumatic.retractPneumatics();
+    }
+
+    if(joystick.getRawButtonPressed(7)){
+      ClimbPistionState = !ClimbPistionState;
+    }
+    if(ClimbPistionState){
+      climbPneumatic.extendPneumatics();
+    }else{
+      climbPneumatic.retractPneumatics();
     }
   }
 
@@ -316,6 +343,7 @@ public class Robot extends TimedRobot implements Constants {
   public void SendMotorSpeeds() {
 
     driveTrain.tankDrive(leftSpeed * DriveSpeedMultiplier, rightSpeed * DriveSpeedMultiplier);
+    climbDrive.set(climbDriveSpeed);
 
     if (!armLSTop.get()) {
       armSpeed = Limit(armSpeed, -1, 0);

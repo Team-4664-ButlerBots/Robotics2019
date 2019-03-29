@@ -66,6 +66,7 @@ public class Vision {
             double sigmoidTurn = Utility.Sigmoid(xPercent, 
             Math.abs(xPercent * AngleMultiplier.getDouble(5))) * SpeedMultiplier.getDouble(1);
 
+            /*
             //==========EXPERIMENTAL===========
             if(Math.abs(sigmoidTurn) < 0.2 && Math.abs(sigmoidTurn) > 0.01){
                 if(sigmoidTurn < 0){
@@ -75,7 +76,8 @@ public class Vision {
                 }
             }
             //============END================
-
+            */
+            
             /*
              * old math double turn = centerX - (IMG_WIDTH / 2); double sigmoidTurn =
              * Utility.Sigmoid(turn, 0.018)*3.5;
