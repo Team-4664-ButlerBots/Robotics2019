@@ -58,9 +58,9 @@ public class Robot extends TimedRobot implements Constants {
   private Victor climbDrive = new Victor(CLIMBDRIVEPORT);
 
   // Controllers
-  private Joystick gamepad = new Joystick(0);
-  private Joystick joystick = new Joystick(1);
-  private ToggleableChooser triggerToggle = new ToggleableChooser(joystick, 1);
+  private Joystick joystickLeft = new Joystick(0);
+  private Joystick joystickRight = new Joystick(1);
+  private ToggleableChooser triggerToggle = new ToggleableChooser(joystickRight, 1);
   
 
   // Drive motor speed varibles
@@ -90,7 +90,7 @@ public class Robot extends TimedRobot implements Constants {
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
    */
-  Vision vision = new Vision(driveTrain, gamepad);
+  Vision vision = new Vision(driveTrain, joystickLeft);
 
   int test = -67;
   @Override
@@ -172,13 +172,13 @@ public class Robot extends TimedRobot implements Constants {
   @Override
   public void teleopPeriodic() {
     updateOverride();
-    if (jsDeadband(joystick.getY()) == 0 && !armOverride) {
+    if (jsDeadband(joystickRight.getY()) == 0 && !armOverride) {
       armToUltra();
     } else {
       ArmController();
       updateUltraDistance();      
     }
-    if (gamepad.getRawButton(5)) {
+    if (joystickLeft.getRawButton(5)) {
       vision.TrackBall();
     } else {
        DriveWithController();
@@ -189,7 +189,7 @@ public class Robot extends TimedRobot implements Constants {
   }
 
   public void climbInput(){
-    if(joystick.getRawButton(11)){
+    if(joystickRight.getRawButton(11)){
       climbDriveSpeed = -1;
     }else{
       climbDriveSpeed = 0;
@@ -198,29 +198,29 @@ public class Robot extends TimedRobot implements Constants {
 
   //true is extended false is retracted
   private boolean clampState = false;
-  private boolean ClimbPistionState = false; 
+  private boolean ClimbPistonState = false; 
   //takes input from controller and updates pnematics
   public void pneumaticInput(){
     if(triggerToggle.ButtonDown()){
       clampState = !clampState;
     }
-    if(clampState){
+    if(joystickLeft.getX() >= .5){
       clampPneumatic.extendPneumatics();
-    }else{
+    }else if(joystickLeft.getX() <= -.5){
       clampPneumatic.retractPneumatics();
     }
     
 
-    if(!joystick.getRawButton(2)){
+    if(joystickRight.getX() >= .5){
       ejectPneumatic.extendPneumatics();
-    }else{
+    }else if(joystickRight.getX() <= -.5){
       ejectPneumatic.retractPneumatics();
     }
 
-    if(joystick.getRawButtonPressed(10)){
-      ClimbPistionState = !ClimbPistionState;
+    if(joystickRight.getRawButtonPressed(10)){
+      ClimbPistonState = !ClimbPistonState;
     }
-    if(ClimbPistionState){
+    if(ClimbPistonState){
       climbPneumatic.extendPneumatics();
     }else{
       climbPneumatic.retractPneumatics();
@@ -231,19 +231,19 @@ public class Robot extends TimedRobot implements Constants {
   private Double discHeight = 300.0;
   //directly sets the target ultra value for easily seting the height
   public void setUltraHeight(){
-    if(joystick.getRawButton(6)){
+    if(joystickRight.getRawButton(6)){
       ultraValue = ballHeight;
     }
-    if(joystick.getRawButton(7)){
+    if(joystickRight.getRawButton(7)){
       ultraValue = discHeight;
     }
   }
 
   public void updateOverride(){
     //overrides the ultra sonic sensor if something goes wrong. back up just in case
-    if(joystick.getRawButton(8)){
+    if(joystickRight.getRawButton(8)){
       armOverride = true;
-    }else if(joystick.getRawButton(9)){
+    }else if(joystickRight.getRawButton(9)){
       armOverride = false;
     }
   }
@@ -305,15 +305,9 @@ public class Robot extends TimedRobot implements Constants {
   double DriveSpeedMultiplier = 1;
   public void DriveWithController() {
     //this sets two speeds for the robot drive train
-    if (gamepad.getRawButton(7)) {
-      DriveSpeedMultiplier = LOWSPEED;
-    } else if (gamepad.getRawButton(8)) {
-      DriveSpeedMultiplier = HIGHSPEED;
-    }else{
-      DriveSpeedMultiplier = MEDSPEED;
-    }
-    leftSpeed = deadband(jsDeadband(gamepad.getRawAxis(3)), DRIVEDB);
-    rightSpeed = deadband(jsDeadband(gamepad.getY()), DRIVEDB);
+    DriveSpeedMultiplier = HIGHSPEED;
+    leftSpeed = deadband(jsDeadband(joystickLeft.getY()), DRIVEDB);
+    rightSpeed = deadband(jsDeadband(joystickRight.getY()), DRIVEDB);
 
     //increases the max speed when turning to allow more control at lower speeds
     double maxDiff = (1 - DriveSpeedMultiplier) * DriveSpeedMultiplier; //distance of current max speed from 1
@@ -325,11 +319,11 @@ public class Robot extends TimedRobot implements Constants {
   
   private Double minArmSpeed = -0.1;
   public void ArmController() {
-    armSpeed = deadband(jsDeadband(joystick.getY()), ARMDB);
+    armSpeed = deadband(jsDeadband(joystickRight.getY()), ARMDB);
     //this sets the minimum arm speed. This is set because when moving the arm 
     //up we fight against gravity but when we move it down we work with gravity
     //however when we need to climb the arm is used to press the robot up so this button lets us do that
-    if(joystick.getRawButton(3)){
+    if(joystickRight.getRawButton(3)){
       minArmSpeed = -1.0;
     }else{
       minArmSpeed = .0;
