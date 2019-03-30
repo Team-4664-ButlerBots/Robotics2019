@@ -55,7 +55,7 @@ public class Robot extends TimedRobot implements Constants {
 
   // Robot Arm
   private Victor armMotors = new Victor(ElevationMotorPort);
-  private Talon climbDrive = new Talon(CLIMBDRIVEPORT);
+  private Victor climbDrive = new Victor(CLIMBDRIVEPORT);
 
   // Controllers
   private Joystick gamepad = new Joystick(0);
@@ -184,16 +184,12 @@ public class Robot extends TimedRobot implements Constants {
        DriveWithController();
        SendMotorSpeeds();
     }
+    climbInput();
     pneumaticInput();
-
-
-
   }
 
   public void climbInput(){
     if(joystick.getRawButton(11)){
-      climbDriveSpeed = 1;
-    }else if(joystick.getRawButton(11)){
       climbDriveSpeed = -1;
     }else{
       climbDriveSpeed = 0;
@@ -202,7 +198,7 @@ public class Robot extends TimedRobot implements Constants {
 
   //true is extended false is retracted
   private boolean clampState = false;
-  private boolean ClimbPistionState = true; 
+  private boolean ClimbPistionState = false; 
   //takes input from controller and updates pnematics
   public void pneumaticInput(){
     if(triggerToggle.ButtonDown()){
@@ -221,7 +217,7 @@ public class Robot extends TimedRobot implements Constants {
       ejectPneumatic.retractPneumatics();
     }
 
-    if(joystick.getRawButtonPressed(7)){
+    if(joystick.getRawButtonPressed(10)){
       ClimbPistionState = !ClimbPistionState;
     }
     if(ClimbPistionState){
@@ -231,8 +227,8 @@ public class Robot extends TimedRobot implements Constants {
     }
   }
 
-  private Double ballHeight = 400.0;
-  private Double discHeight = 400.0;
+  private Double ballHeight = 200.0;
+  private Double discHeight = 300.0;
   //directly sets the target ultra value for easily seting the height
   public void setUltraHeight(){
     if(joystick.getRawButton(6)){
@@ -293,6 +289,7 @@ public class Robot extends TimedRobot implements Constants {
     else
       return (js + JOYDB) / (1.0 - JOYDB);
   }
+
 
   // used for the deadband on the motor
   public double deadband(double input, double motorDeadband) {
