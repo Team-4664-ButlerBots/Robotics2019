@@ -19,9 +19,9 @@ public interface Constants {
         final double SPEEDMULTIPLER = 0.45;
 
         //SPEED LEVELS:
-        final double LOWSPEED = 0.55;
-        final double MEDSPEED = 0.8;
-        final double HIGHSPEED = 1;
+        final double LOWSPEED = 0.3;
+        final double MEDSPEED = 0.6;
+        final double HIGHSPEED = 0.7;
 
     //Drive motor ports 
         final int LSMOTOR = 8;
