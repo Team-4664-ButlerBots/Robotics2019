@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -56,6 +57,7 @@ public class Robot extends TimedRobot implements Constants {
   // Robot Arm
   private Victor armMotors = new Victor(ElevationMotorPort);
   private Victor climbDrive = new Victor(CLIMBDRIVEPORT);
+  private Servo climbLockServo = new Servo(0);
 
   // Controllers
   private Joystick gamepad = new Joystick(0);
@@ -185,6 +187,7 @@ public class Robot extends TimedRobot implements Constants {
        SendMotorSpeeds();
     }
     climbInput();
+    UpdateServo();
     pneumaticInput();
   }
 
@@ -236,6 +239,14 @@ public class Robot extends TimedRobot implements Constants {
     }
     if(joystick.getRawButton(7)){
       ultraValue = discHeight;
+    }
+  }
+
+  public void UpdateServo(){
+    if(joystick.getRawButton(4)){
+      climbLockServo.setAngle(0);
+    }else if (joystick.getRawButton(5)){
+      climbLockServo.setAngle(45);
     }
   }
 
